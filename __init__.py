@@ -5,6 +5,7 @@ from aqt import mw
 from aqt.utils import showInfo
 #from aqt.utils import getFile
 import aqt.utils
+import anki.lang
 # import all of the Qt GUI library
 #from aqt.qt import *
 import aqt.importing
@@ -16,11 +17,10 @@ from aqt import gui_hooks
 
 def smartImport():
     # launch import dialog
-    # mw.onImport()
 
     # ask user for file
     filt = "*.csv"
-    file = aqt.utils.getFile(mw, _("Import"), None, key="import", filter=filt)
+    file = aqt.utils.getFile(mw, anki.lang._("Smart Import"), None, key="import", filter=filt)
     if not file:
         return
     file = str(file)
