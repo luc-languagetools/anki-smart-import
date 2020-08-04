@@ -20,6 +20,11 @@ class SmartImportDialog(aqt.importing.ImportDialog):
     def __init__(self, mw, importer) -> None:
         aqt.importing.ImportDialog.__init__(self, mw, importer)
 
+class SmartTextImporter(anki.importing.csvfile.TextImporter):
+
+    def __init__(self, col, file: str) -> None:
+        anki.importing.csvfile.TextImporter.__init__(self, col, file)
+
 def smartImport():
     # launch import dialog
 
@@ -32,7 +37,7 @@ def smartImport():
 
     #aqt.qt.importing.importFile(mw, file)
     #importer = aqt.importing.Im(mw.col, file)
-    importer = anki.importing.csvfile.TextImporter(mw.col, file)
+    importer = SmartTextImporter(mw.col, file)
     diag = SmartImportDialog(mw, importer)
 
     
