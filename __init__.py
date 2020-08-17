@@ -58,6 +58,10 @@ def smartImport():
     # look at existing models
     # mw.col.models <-- this is a ModelManager
 
+    # pick the "Default" deck
+    default_deck = mw.col.decks.get("Default")
+    print(f"default deck: {str(default_deck)}")    
+
     eligible_models = []
 
     all_models = mw.col.models.all()
@@ -81,6 +85,20 @@ def smartImport():
             eligible_models.append({'model_name': model_name, 'model_id': model_id})
 
     print(f"found eligible models: {str(eligible_models)}")
+
+    # setup mapping
+    importer.mapping = header_note.fields
+
+    # select deck
+    mw.col.decks.select(default_deck['id'])
+
+    # checkpoint so that user can undo
+    mw.checkpoint(_("Smart Import"))
+
+    # run importer
+    importer.run()
+
+
 
     
 
