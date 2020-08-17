@@ -13,17 +13,18 @@ from anki import hooks
 from aqt import gui_hooks
 import anki.importing.csvfile 
 
-# We're going to add a menu item below. First we want to create a function to
-# be called when the menu item is activated.
-
-class SmartImportDialog(aqt.importing.ImportDialog):
-    def __init__(self, mw, importer) -> None:
-        aqt.importing.ImportDialog.__init__(self, mw, importer)
 
 class SmartTextImporter(anki.importing.csvfile.TextImporter):
 
     def __init__(self, col, file: str) -> None:
         anki.importing.csvfile.TextImporter.__init__(self, col, file)
+
+    def foreignNotes(self):
+        notes = super().foreignNotes()
+        header_note = notes[0]
+        notes = notes[1:]
+        return notes
+    
 
 def smartImport():
     # launch import dialog
@@ -35,12 +36,16 @@ def smartImport():
         return
     file = str(file)
 
-    #aqt.qt.importing.importFile(mw, file)
-    #importer = aqt.importing.Im(mw.col, file)
     importer = SmartTextImporter(mw.col, file)
-    diag = SmartImportDialog(mw, importer)
+    # diag = SmartImportDialog(mw, importer)
 
-    
+    # try to get all of the headers in the file
+    note_list = importer.foreignNotes()
+    # grab the first one
+    note = note_list[0]
+    first_field = note.fields[0]
+
+    aqt.utils.showInfo(str(first_field))
 
 
 # create a new menu item, "test"
