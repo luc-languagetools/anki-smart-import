@@ -33,7 +33,9 @@ class SmartTextImporter(anki.importing.csvfile.TextImporter):
     
 
 def smartImport():
+
     # launch import dialog
+    # ====================
 
     # ask user for file
     filt = "*.csv"
@@ -42,23 +44,14 @@ def smartImport():
         return
     file = str(file)
 
-    importer = SmartTextImporter(mw.col, file)
-    # diag = SmartImportDialog(mw, importer)
+    # checkpoint so that user can undo
+    # ================================
+    mw.checkpoint(f"Smart Import")
 
-    # try to get all of the headers in the file
-    note_list = importer.foreignNotes()
-    # grab the first one
-    note = note_list[0]
-    first_field = note.fields[0]
+    importer = SmartTextImporter(mw.col, file)
 
     # get headers
     header_note = importer.getHeaderRow()
-
-    # aqt.utils.showInfo(str(first_field))
-    # aqt.utils.showInfo(f"columns: {', '.join(header_note.fields)}")
-
-    # look at existing models
-    # mw.col.models <-- this is a ModelManager
 
 
     # model / note type selection
@@ -144,10 +137,6 @@ def smartImport():
     mw.col.models.save(importer.model, updateReqs=False)
     mw.col.decks.select(did)
 
-
-    # checkpoint so that user can undo
-    # ================================
-    mw.checkpoint(f"Smart Import into deck {deck_selected['name']}")
 
     # run importer
     importer.run()
