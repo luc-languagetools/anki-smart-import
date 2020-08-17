@@ -108,7 +108,7 @@ def smartImport():
     # select the target deck in the collection
     print(f"deck selected: {str(deck_selected)}")
     did = deck_selected['id']
-    # importer.model["did"] = did
+    importer.model["did"] = did
     mw.col.decks.select(did)
 
 
