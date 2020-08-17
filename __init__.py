@@ -92,7 +92,6 @@ def smartImport():
         # ask user for the model
         model_index_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['name']])
         model_selected = eligible_models[model_index_selected]
-        print(f"model selected: {str(model_selected)}")
 
     else:
         # create a model, ask user for the name of the model
@@ -105,8 +104,19 @@ def smartImport():
             return
 
         # create the new note type
+        new_model = mw.col.models.new(new_note_type_name)
+        # add fields
+        for field_name in header_note.fields:
+            new_field = mw.col.models.newField(field_name)
+            mw.col.models.addField(new_model, new_field)
+        # add templates
+        default_template = mw.col.models.newTemplate("Front")
+        mw.col.models.addTemplate(new_model, default_template)
+        # save changes
+        mw.col.models.add(new_model)
+        model_selected = new_model
 
-
+    print(f"model selected: {str(model_selected)}")
 
     # indicate which model we want to use
     importer.model = model_selected
