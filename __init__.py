@@ -58,6 +58,10 @@ def smartImport():
     # look at existing models
     # mw.col.models <-- this is a ModelManager
 
+
+    # model / note type selection
+    # ===========================
+
     eligible_models = []
 
     all_models = mw.col.models.all()
@@ -78,14 +82,17 @@ def smartImport():
         
         if is_eligible:
             print(f"model is eligible: {model_name}")
-            eligible_models.append({'model_name': model_name, 'model_id': model_id})
+            eligible_models.append(model)
 
     print(f"found eligible models: {str(eligible_models)}")
 
     # ask user for the model
-    model_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['model_name']])
-    print(f"model selected: {model_selected}")
+    model_index_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['name']])
+    model_selected = eligible_models[model_index_selected]
+    print(f"model selected: {str(model_selected)}")
 
+    # indicate which model we want to use
+    importer.model = model_selected
     # setup mapping, just need to use the order of the header row
     importer.mapping = header_note.fields
 
@@ -100,7 +107,9 @@ def smartImport():
  
     # select the target deck in the collection
     print(f"deck selected: {str(deck_selected)}")
-    mw.col.decks.select(deck_selected['id'])
+    did = deck_selected['id']
+    # importer.model["did"] = did
+    mw.col.decks.select(did)
 
 
     # checkpoint so that user can undo
