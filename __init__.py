@@ -110,7 +110,11 @@ def smartImport():
             new_field = mw.col.models.newField(field_name)
             mw.col.models.addField(new_model, new_field)
         # add templates
-        default_template = mw.col.models.newTemplate("Front")
+        default_template = mw.col.models.newTemplate("Default")
+        formatted_fields = ['{{' + field_name + '}}' for field_name in header_note.fields]
+        formatted_template = ' '.join(formatted_fields)
+        default_template['qfmt'] = formatted_template
+        default_template['afmt'] = formatted_template
         mw.col.models.addTemplate(new_model, default_template)
         # save changes
         mw.col.models.add(new_model)
