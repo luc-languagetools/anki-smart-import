@@ -137,6 +137,7 @@ def smartImport():
     print(f"deck selected: {str(deck_selected)}")
     did = deck_selected['id']
     importer.model["did"] = did
+    mw.col.models.save(importer.model, updateReqs=False)
     mw.col.decks.select(did)
 
 
