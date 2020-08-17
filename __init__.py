@@ -114,6 +114,7 @@ def smartImport():
         mw.col.models.addTemplate(new_model, default_template)
         # save changes
         mw.col.models.add(new_model)
+        mw.col.models.flush()
         model_selected = new_model
 
     print(f"model selected: {str(model_selected)}")
