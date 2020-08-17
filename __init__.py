@@ -11,6 +11,8 @@ import aqt.importing
 from anki import hooks
 from aqt import gui_hooks
 import anki.importing.csvfile 
+import random
+import string
 
 
 class SmartTextImporter(anki.importing.csvfile.TextImporter):
@@ -84,12 +86,27 @@ def smartImport():
             print(f"model is eligible: {model_name}")
             eligible_models.append(model)
 
-    print(f"found eligible models: {str(eligible_models)}")
 
-    # ask user for the model
-    model_index_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['name']])
-    model_selected = eligible_models[model_index_selected]
-    print(f"model selected: {str(model_selected)}")
+    # print(f"found eligible models: {str(eligible_models)}")
+    if len(eligible_models) > 0:
+        # ask user for the model
+        model_index_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['name']])
+        model_selected = eligible_models[model_index_selected]
+        print(f"model selected: {str(model_selected)}")
+
+    else:
+        # create a model, ask user for the name of the model
+        random_prefix = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
+        (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title="Smart Import: New Note Type", default="New-Note-Type-" + random_prefix)
+        print(f"{new_note_type_name}, {retval}")
+
+        if retval == 0:
+            # user clicked cancel
+            return
+
+        # create the new note type
+
+
 
     # indicate which model we want to use
     importer.model = model_selected
@@ -119,7 +136,8 @@ def smartImport():
     # run importer
     importer.run()
 
-
+    # show to the user how many notes we imported
+    aqt.utils.showInfo(f"Smart Import: complete: {importer.log[0]}")
 
     
 
