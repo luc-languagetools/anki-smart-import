@@ -13,7 +13,7 @@ import anki.lang
 # import all of the Qt GUI library
 import aqt.importing
 from anki import hooks
-from aqt import gui_hooks
+#from aqt import gui_hooks
 import anki.importing.csvfile 
 import random
 import string
@@ -25,13 +25,13 @@ class SmartTextImporter(anki.importing.csvfile.TextImporter):
         anki.importing.csvfile.TextImporter.__init__(self, col, file)
 
     def foreignNotes(self):
-        notes = super().foreignNotes()
+        notes = super(SmartTextImporter, self).foreignNotes()
         header_note = notes[0]
         notes = notes[1:]
         return notes
 
     def getHeaderRow(self):
-        notes = super().foreignNotes()
+        notes = super(SmartTextImporter, self).foreignNotes()
         header_note = notes[0]
         return header_note
     
@@ -80,7 +80,7 @@ def smartImport():
                 is_eligible = False
         
         if is_eligible:
-            print(f"model is eligible: {model_name}")
+            #print(f"model is eligible: {model_name}")
             eligible_models.append(model)
 
 
@@ -94,7 +94,7 @@ def smartImport():
         # create a model, ask user for the name of the model
         random_prefix = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
         (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title="Smart Import: New Note Type", default="New-Note-Type-" + random_prefix)
-        print(f"{new_note_type_name}, {retval}")
+        #print(f"{new_note_type_name}, {retval}")
 
         if retval == 0:
             # user clicked cancel
@@ -118,7 +118,7 @@ def smartImport():
         mw.col.models.flush()
         model_selected = new_model
 
-    print(f"model selected: {str(model_selected)}")
+    #print(f"model selected: {str(model_selected)}")
 
     # indicate which model we want to use
     importer.model = model_selected
@@ -135,10 +135,10 @@ def smartImport():
     deck_selected = all_decks[deck_index_selected]
  
     # select the target deck in the collection
-    print(f"deck selected: {str(deck_selected)}")
+    #print(f"deck selected: {str(deck_selected)}")
     did = deck_selected['id']
     importer.model["did"] = did
-    mw.col.models.save(importer.model, updateReqs=False)
+    mw.col.models.save(importer.model)
     mw.col.decks.select(did)
 
 
@@ -146,7 +146,7 @@ def smartImport():
     importer.run()
 
     # show to the user how many notes we imported
-    aqt.utils.showInfo(f"Smart Import: complete: {importer.log[0]}")
+    aqt.utils.showInfo("Smart Import: complete: " + importer.log[0])
 
     
 
