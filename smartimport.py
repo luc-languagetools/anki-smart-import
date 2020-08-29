@@ -6,14 +6,11 @@ Anki Smart import, for Anki 2.0.52
 import aqt
 from aqt import mw
 # import the "show info" tool from utils.py
-from aqt.utils import showInfo
-#from aqt.utils import getFile
 import aqt.utils
 import anki.lang
 # import all of the Qt GUI library
 import aqt.importing
 from anki import hooks
-#from aqt import gui_hooks
 import anki.importing.csvfile 
 import random
 import string
@@ -146,7 +143,13 @@ def smartImport():
     importer.run()
 
     # show to the user how many notes we imported
-    aqt.utils.showInfo("Smart Import: complete: " + importer.log[0])
+    #print(importer.log)
+    #aqt.utils.showInfo("Smart Import: complete: " + importer.log[-1])
+
+    txt = "Smart Import complete."
+    if importer.log:
+        txt += "\n".join(importer.log)
+    aqt.utils.showText(txt)
 
     
 
