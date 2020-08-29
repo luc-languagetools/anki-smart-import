@@ -19,6 +19,7 @@ class SmartTextImporter(anki.importing.csvfile.TextImporter):
 
     def __init__(self, col, file: str) -> None:
         anki.importing.csvfile.TextImporter.__init__(self, col, file)
+        self.allowHTML = True
 
     def foreignNotes(self):
         notes = super().foreignNotes()
@@ -142,7 +143,10 @@ def smartImport():
     importer.run()
 
     # show to the user how many notes we imported
-    aqt.utils.showInfo(f"Smart Import: complete: {importer.log[0]}")
+    txt = "Smart Import complete."
+    if importer.log:
+        txt += "\n".join(importer.log)
+    aqt.utils.showText(txt)    
 
     
 
