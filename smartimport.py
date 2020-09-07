@@ -7,6 +7,7 @@ import aqt
 from aqt import mw
 # import the "show info" tool from utils.py
 import aqt.utils
+import aqt.qt
 import anki.lang
 # import all of the Qt GUI library
 import aqt.importing
@@ -14,7 +15,17 @@ from anki import hooks
 import anki.importing.csvfile 
 import random
 import string
+import os
+import sys
 
+# edit this directory to add quickly accessible locations
+LOCATIONS = [
+    "/home/luc/Downloads",
+    "/home/luc/temp"
+]
+
+isMac = sys.platform.startswith("darwin")
+isWin = sys.platform.startswith("win32")
 
 class SmartTextImporter(anki.importing.csvfile.TextImporter):
 
@@ -33,6 +44,41 @@ class SmartTextImporter(anki.importing.csvfile.TextImporter):
         header_note = notes[0]
         return header_note
     
+# overriden getFile dialog with some customizations
+def getFile(parent, title, cb, filter="*.*", dir=None, key=None, locations=[]):
+    "Ask the user for a file."
+    assert not dir or not key
+    if not dir:
+        dirkey = key+"Directory"
+        dir = aqt.mw.pm.profile.get(dirkey, "")
+    else:
+        dirkey = None
+    d = aqt.qt.QFileDialog(parent)
+    # fix #233 crash
+    if isMac:
+        d.setOptions(aqt.qt.QFileDialog.DontUseNativeDialog)
+    d.setFileMode(aqt.qt.QFileDialog.ExistingFile)
+    if os.path.exists(dir):
+        d.setDirectory(dir)
+    d.setWindowTitle(title)
+    d.setNameFilter(filter)
+    if len(locations) > 0:
+        sidebarurls = [aqt.qt.QUrl.fromLocalFile(x) for x in locations]
+        d.setSidebarUrls(sidebarurls)
+    ret = []
+    def accept():
+        # work around an osx crash
+        #aqt.mw.app.processEvents()
+        file = unicode(list(d.selectedFiles())[0])
+        if dirkey:
+            dir = os.path.dirname(file)
+            aqt.mw.pm.profile[dirkey] = dir
+        if cb:
+            cb(file)
+        ret.append(file)
+    d.connect(d, aqt.qt.SIGNAL("accepted()"), accept)
+    d.exec_()
+    return ret and ret[0]
 
 def smartImport():
 
@@ -41,7 +87,7 @@ def smartImport():
 
     # ask user for file
     filt = "*.csv"
-    file = aqt.utils.getFile(mw, anki.lang._("Smart Import"), None, key="import", filter=filt)
+    file = getFile(mw, anki.lang._("Smart Import"), None, key="import", filter=filt, locations=LOCATIONS)
     if not file:
         return
     file = str(file)
