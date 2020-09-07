@@ -13,7 +13,10 @@ from aqt import gui_hooks
 import anki.importing.csvfile 
 import random
 import string
+import os
 
+
+ADDON_NAME = "Smart Import"
 
 class SmartTextImporter(anki.importing.csvfile.TextImporter):
 
@@ -32,27 +35,74 @@ class SmartTextImporter(anki.importing.csvfile.TextImporter):
         header_note = notes[0]
         return header_note
     
+def getFile(parent, title, cb, filter="*.*", dir=None, key=None, multi=False, locations=[]):
+    "Ask the user for a file."
+    assert not dir or not key
+    if not dir:
+        dirkey = key + "Directory"
+        dir = aqt.mw.pm.profile.get(dirkey, "")
+    else:
+        dirkey = None
+    d = aqt.qt.QFileDialog(parent)
+    mode = aqt.qt.QFileDialog.ExistingFiles if multi else aqt.qt.QFileDialog.ExistingFile
+    d.setFileMode(mode)
+    if os.path.exists(dir):
+        d.setDirectory(dir)
+    d.setWindowTitle(title)
+    d.setNameFilter(filter)
+    if len(locations) > 0:
+        sidebarurls = [aqt.qt.QUrl.fromLocalFile(x) for x in locations]
+        d.setSidebarUrls(sidebarurls)
+        print("set sidebar urls")
+    ret = []
+
+    def accept():
+        files = list(d.selectedFiles())
+        if dirkey:
+            dir = os.path.dirname(files[0])
+            aqt.mw.pm.profile[dirkey] = dir
+        result = files if multi else files[0]
+        if cb:
+            cb(result)
+        ret.append(result)
+
+    aqt.qt.qconnect(d.accepted, accept)
+    if key:
+        aqt.utils.restoreState(d, key)
+    d.exec_()
+    if key:
+        aqt.utils.saveState(d, key)
+    return ret and ret[0]
 
 def smartImport():
 
     # launch import dialog
     # ====================
 
+    # load configuration to access quick locations
+    config = mw.addonManager.getConfig(__name__)
+    locations = config['locations']
+    print(locations)
+
     # ask user for file
     filt = "*.csv"
-    file = aqt.utils.getFile(mw, anki.lang._("Smart Import"), None, key="import", filter=filt)
+    file = getFile(mw, ADDON_NAME, None, key=ADDON_NAME, filter=filt, locations=locations)
     if not file:
         return
     file = str(file)
 
     # checkpoint so that user can undo
     # ================================
-    mw.checkpoint(f"Smart Import")
+    mw.checkpoint(ADDON_NAME)
 
     importer = SmartTextImporter(mw.col, file)
 
     # get headers
     header_note = importer.getHeaderRow()
+
+    field_names_text = "\n".join(header_note.fields)
+    field_names_text = ADDON_NAME + ": found the following field names in file:\n" + field_names_text
+    aqt.utils.showText(field_names_text)
 
 
     # model / note type selection
@@ -77,21 +127,21 @@ def smartImport():
                 is_eligible = False
         
         if is_eligible:
-            print(f"model is eligible: {model_name}")
+            #print(f"model is eligible: {model_name}")
             eligible_models.append(model)
 
 
     # print(f"found eligible models: {str(eligible_models)}")
     if len(eligible_models) > 0:
         # ask user for the model
-        model_index_selected = aqt.utils.chooseList("Smart Import: Choose Note Type", [eligible_models[0]['name']])
+        model_index_selected = aqt.utils.chooseList(ADDON_NAME + ": Choose Note Type", [eligible_models[0]['name']])
         model_selected = eligible_models[model_index_selected]
 
     else:
         # create a model, ask user for the name of the model
         random_prefix = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
-        (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title="Smart Import: New Note Type", default="New-Note-Type-" + random_prefix)
-        print(f"{new_note_type_name}, {retval}")
+        (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title=ADDON_NAME + ": New Note Type", default="New-Note-Type-" + random_prefix)
+        #print(f"{new_note_type_name}, {retval}")
 
         if retval == 0:
             # user clicked cancel
@@ -115,7 +165,7 @@ def smartImport():
         mw.col.models.flush()
         model_selected = new_model
 
-    print(f"model selected: {str(model_selected)}")
+    #print(f"model selected: {str(model_selected)}")
 
     # indicate which model we want to use
     importer.model = model_selected
@@ -128,11 +178,11 @@ def smartImport():
     # get full list of decks
     all_decks = mw.col.decks.all()
     # ask user to select one
-    deck_index_selected = aqt.utils.chooseList("Smart Import: Choose Deck", [deck['name'] for deck in all_decks])
+    deck_index_selected = aqt.utils.chooseList(ADDON_NAME + ": Choose Deck", [deck['name'] for deck in all_decks])
     deck_selected = all_decks[deck_index_selected]
  
     # select the target deck in the collection
-    print(f"deck selected: {str(deck_selected)}")
+    #print(f"deck selected: {str(deck_selected)}")
     did = deck_selected['id']
     importer.model["did"] = did
     mw.col.models.save(importer.model, updateReqs=False)
@@ -143,7 +193,7 @@ def smartImport():
     importer.run()
 
     # show to the user how many notes we imported
-    txt = "Smart Import complete."
+    txt = ADDON_NAME + " complete."
     if importer.log:
         txt += "\n".join(importer.log)
     aqt.utils.showText(txt)    
@@ -153,7 +203,7 @@ def smartImport():
 
 
 # create a new menu item, "test"
-action = aqt.QAction("Smart Import...", mw)
+action = aqt.QAction(ADDON_NAME + "...", mw)
 # set it to call testFunction when it's clicked
 action.triggered.connect(smartImport)
 # and add it to the tools menu

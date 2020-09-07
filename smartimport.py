@@ -24,6 +24,8 @@ LOCATIONS = [
     "/home/luc/temp"
 ]
 
+ADDON_NAME = "Smart Import"
+
 isMac = sys.platform.startswith("darwin")
 isWin = sys.platform.startswith("win32")
 
@@ -87,19 +89,23 @@ def smartImport():
 
     # ask user for file
     filt = "*.csv"
-    file = getFile(mw, anki.lang._("Smart Import"), None, key="import", filter=filt, locations=LOCATIONS)
+    file = getFile(mw, ADDON_NAME, None, key="import", filter=filt, locations=LOCATIONS)
     if not file:
         return
     file = str(file)
 
     # checkpoint so that user can undo
     # ================================
-    mw.checkpoint("Smart Import")
+    mw.checkpoint(ADDON_NAME)
 
     importer = SmartTextImporter(mw.col, file)
 
     # get headers
     header_note = importer.getHeaderRow()
+
+    field_names_text = "\n".join(header_note.fields)
+    field_names_text = ADDON_NAME + ": found the following field names in file: \n" + field_names_text
+    aqt.utils.showText(field_names_text, title=ADDON_NAME)
 
 
     # model / note type selection
@@ -137,7 +143,7 @@ def smartImport():
     else:
         # create a model, ask user for the name of the model
         random_prefix = ''.join(random.choice(string.ascii_lowercase) for i in range(4))
-        (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title="Smart Import: New Note Type", default="New-Note-Type-" + random_prefix)
+        (new_note_type_name, retval) = aqt.utils.getText("Enter new Note Type name", title=ADDON_NAME + ": New Note Type", default="New-Note-Type-" + random_prefix)
         #print(f"{new_note_type_name}, {retval}")
 
         if retval == 0:
